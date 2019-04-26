@@ -7,7 +7,7 @@ from keras.models import Model, load_model
 from keras import initializers, regularizers, constraints, optimizers, layers, callbacks
 from keras import backend as K
 from keras.engine import InputSpec, Layer
-from utils import RocAucEvaluation
+from models.utils import RocAucEvaluation
 
 
 class BiLstm:
