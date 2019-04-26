@@ -64,6 +64,5 @@ class BiLstm:
         return self
 
 
-    def predict(self, X, batch_size =self.arguments['batch_size'],  verbose = 1):
-
+    def predict(self, X, batch_size,  verbose):
         return self.model.predict(X, batch_size = batch_size, verbose = verbose)
