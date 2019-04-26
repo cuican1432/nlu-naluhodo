@@ -40,7 +40,7 @@ class Dataset:
 		'''
 
 	    # Build dictionary from word embedding
-		print('Loading word vectors...')；
+		print('Loading word vectors...');
 	    
 		def get_coefs(word,*arr): return word, np.asarray(arr, dtype='float32')
 
