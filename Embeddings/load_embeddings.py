@@ -15,7 +15,7 @@ class Dataset:
 		'''
 	    df_dataset: pandas DataFrame that contains text contents and labels
 	    embedding_path: word embedding saving path
-	    data_index: list of np.array that contains the training, validation, and test indeces
+	    self.data_index: list of np.array that contains the training, validation, and test indeces
 	    content_column: Name of content column, default is 'contents'
 	    label_column: Name of label column(s), default is 'labels'
 	    max_len: the padding lenth of the text, default is 200
@@ -25,15 +25,15 @@ class Dataset:
 
 		self.dataset = df_dataset
 		self.embedding_path = embedding_path
-		self.data_index = None
-		self.content_column = 'contents'
-		self.label_column = 'labels'
+		self.self.data_index = None
+		self.content_column = 'Contents'
+		self.label_column = [str(i+1) for i in range(6)]
 		self.max_len = 200
 		self.max_features = 100000
 		self.embed_size = 300
 
 
-	def load_data():
+	def load_data(self):
 
 		'''
 		return processed final datasets with embeddings:
@@ -58,21 +58,21 @@ class Dataset:
 	    print('Found %s word vectors.' % len(word2vec))
 
 	    # prepare text samples and their labels
-	    print('Loading in comments...')
+	    print('Loading email contents...')
 	    # extract the comments, fill NaN with some values
 	    contents = self.dataset[self.content_column].fillna("DUMMY_VALUE").values
 	    labels = self.dataset[self.label_column].values
 	    
-	    if data_index == None:
+	    if self.data_index == None:
 	        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(contents, labels, test_size = 0.2, random_state=0)
 	        self.X_train, self.X_valid, self.y_train, self.y_valid = train_test_split(self.X_train, self.y_train, test_size = 0.125, random_state=0)
 	    else:
-	        self.X_train = contents[data_index[0]]
-	        self.y_train = labels[data_index[0]]
-	        self.X_valid = contents[data_index[1]]
-	        self.y_valid = labels[data_index[1]]
-	        self.X_test = contents[data_index[2]]
-	        self.y_test = labels[data_index[2]]
+	        self.X_train = contents[self.data_index[0]]
+	        self.y_train = labels[self.data_index[0]]
+	        self.X_valid = contents[self.data_index[1]]
+	        self.y_valid = labels[self.data_index[1]]
+	        self.X_test = contents[self.data_index[2]]
+	        self.y_test = labels[self.data_index[2]]
 
 	    # convert the sentences (strings) into integers, thus they can be used as index later on
 	    tokenizer = Tokenizer(num_words=self.max_features)
