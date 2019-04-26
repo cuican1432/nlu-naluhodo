@@ -32,7 +32,6 @@ class Dataset:
 		self.max_features = 100000
 		self.embed_size = 300
 
-
 	def load_data(self):
 
 		'''
@@ -41,17 +40,9 @@ class Dataset:
 		'''
 
 	    # Build dictionary from word embedding
-	    print('Loading word vectors...')
-	    # word2vec = {}
-	    # with tqdm(open(embedding_path)) as f:
-	    # with open(embedding_path) as f:
-	    #    for line in f:
-	    #        values = line.split()
-	    #        word = values[0]
-	    #        vec = np.asarray(values[1:], dtype='float32')
-	    #        word2vec[word] = vec
+		print('Loading word vectors...')；
 	    
-	    def get_coefs(word,*arr): return word, np.asarray(arr, dtype='float32')
+		def get_coefs(word,*arr): return word, np.asarray(arr, dtype='float32')
 
 	    word2vec = dict(get_coefs(*o.strip().split(" ")) for o in tqdm(open(self.embedding_path)))
 	    
