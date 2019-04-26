@@ -8,7 +8,7 @@ from keras.layers import Embedding
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
-class Dataset:
+class DataEmbeddings:
 
 	def __init__(self, df_dataset, embedding_path):
 
@@ -32,7 +32,7 @@ class Dataset:
 		self.max_features = 100000
 		self.embed_size = 300
 
-	def load_data(self):
+	def load_data_embeddings(self):
 
 		'''
 		return processed final datasets with embeddings:
