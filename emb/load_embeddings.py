@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 class DataEmbeddings:
 
-	def __init__(self, df_dataset, embedding_path):
+	def __init__(self, data_index, nth_sample = 0):
 
 		'''
 	    df_dataset: pandas DataFrame that contains text contents and labels
@@ -23,20 +23,24 @@ class DataEmbeddings:
 	    embed_size: length of embedding vector, should correspond with the embedding provided, default is 300
 	   ''' 
 
-		self.dataset = df_dataset
-		self.embedding_path = embedding_path
-		self.data_index = None
+		self.nth_sample = nth_sample
+		self.data_index = [data_index['train'][self.nth_sample], data_index['val'][self.nth_sample], data_index['test']]
 		self.content_column = 'Contents'
 		self.label_column = [str(i+1) for i in range(6)]
 		self.max_len = 200
 		self.max_features = 100000
 		self.embed_size = 300
 
-	def load_data_embeddings(self):
+		print('Creating data sample ' + str(self.nth_sample+1) + ' out of 3...')
+		print('max_len : ' + str(self.max_len))
+		print('max_feature : ' + str(self.max_features))
+		print('embed_size : ' + str(self.embed_size))
+
+	def load_data_embeddings(self, dataset, embedding_path):
 
 		'''
 		return processed final datasets with embeddings:
-		self.X_train, self.y_train, self.X_valid, self.y_valid, self.X_test, self.y_test, self.embedding_layer
+		X_train, y_train, X_valid, y_valid, X_test, y_test, embedding_layer
 		'''
 
 	    # Build dictionary from word embedding
@@ -44,38 +48,38 @@ class DataEmbeddings:
 	    
 		def get_coefs(word,*arr): return word, np.asarray(arr, dtype='float32')
 
-		word2vec = dict(get_coefs(*o.strip().split(" ")) for o in tqdm(open(self.embedding_path)))
+		word2vec = dict(get_coefs(*o.strip().split(" ")) for o in tqdm(open(embedding_path)))
 
 		print('Found %s word vectors.' % len(word2vec))
 
 		# prepare text samples and their labels
 		print('Loading email contents...')
 		# extract the comments, fill NaN with some values
-		contents = self.dataset[self.content_column].fillna("DUMMY_VALUE").values
-		labels = self.dataset[self.label_column].values
+		contents = dataset[self.content_column].fillna("DUMMY_VALUE").values
+		labels = dataset[self.label_column].values
 
 		if self.data_index == None:
-		    self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(contents, labels, test_size = 0.2, random_state=0)
-		    self.X_train, self.X_valid, self.y_train, self.y_valid = train_test_split(self.X_train, self.y_train, test_size = 0.125, random_state=0)
+		    X_train, X_test, y_train, y_test = train_test_split(contents, labels, test_size = 0.2, random_state=0)
+		    X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size = 0.125, random_state=0)
 		else:
-		    self.X_train = contents[self.data_index[0]]
-		    self.y_train = labels[self.data_index[0]]
-		    self.X_valid = contents[self.data_index[1]]
-		    self.y_valid = labels[self.data_index[1]]
-		    self.X_test = contents[self.data_index[2]]
-		    self.y_test = labels[self.data_index[2]]
+		    X_train = contents[self.data_index[0]]
+		    y_train = labels[self.data_index[0]]
+		    X_valid = contents[self.data_index[1]]
+		    y_valid = labels[self.data_index[1]]
+		    X_test = contents[self.data_index[2]]
+		    y_test = labels[self.data_index[2]]
 
 		# convert the sentences (strings) into integers, thus they can be used as index later on
 		tokenizer = Tokenizer(num_words=self.max_features)
-		tokenizer.fit_on_texts(self.X_train)
+		tokenizer.fit_on_texts(X_train)
 		#sequences = tokenizer.texts_to_sequences(sentences)
-		self.X_train_seq = tokenizer.texts_to_sequences(self.X_train)
-		self.X_valid_seq = tokenizer.texts_to_sequences(self.X_valid)
-		self.X_test_seq = tokenizer.texts_to_sequences(self.X_test)
+		X_train_seq = tokenizer.texts_to_sequences(X_train)
+		X_valid_seq = tokenizer.texts_to_sequences(X_valid)
+		X_test_seq = tokenizer.texts_to_sequences(X_test)
 
-		print("max sequence length:", max(len(s) for s in self.X_train_seq))
-		print("min sequence length:", min(len(s) for s in self.X_train_seq))
-		s = sorted(len(s) for s in self.X_train_seq)
+		print("max sequence length:", max(len(s) for s in X_train_seq))
+		print("min sequence length:", min(len(s) for s in X_train_seq))
+		s = sorted(len(s) for s in X_train_seq)
 		print("median sequence length:", s[len(s) // 2])
 
 		# get word -> integer mapping
@@ -85,10 +89,10 @@ class DataEmbeddings:
 		# pad sequences so that we get a N x T matrix
 		# Keras take care of the 0 only for padding purpose 
 
-		self.X_train = pad_sequences(self.X_train_seq, maxlen=self.max_len)
-		self.X_valid = pad_sequences(self.X_valid_seq, maxlen=self.max_len)
-		self.X_test = pad_sequences(self.X_test_seq, maxlen=self.max_len)
-		print('Shape of data tensor:', self.X_train.shape)
+		X_train = pad_sequences(X_train_seq, maxlen=self.max_len)
+		X_valid = pad_sequences(X_valid_seq, maxlen=self.max_len)
+		X_test = pad_sequences(X_test_seq, maxlen=self.max_len)
+		print('Shape of data tensor:', X_train.shape)
 
 		# prepare embedding matrix
 		print('Filling pre-trained embeddings...')
@@ -103,7 +107,7 @@ class DataEmbeddings:
 
 		# load pre-trained word embeddings into an Embedding layer
 		# note that we set trainable = False so as to keep the embeddings fixed
-		self.embedding_layer = Embedding(
+		embedding_layer = Embedding(
 		  min(self.max_features, embedding_matrix.shape[0]),
 		  self.embed_size,
 		  weights=[embedding_matrix],
@@ -115,4 +119,4 @@ class DataEmbeddings:
 		print('Finished.')
 		print('Generated X_train, y_train, X_valid, y_valid, X_test, y_test, embedding_layer as class attributes.')
 
-		return self
+		return X_train, y_train, X_valid, y_valid, X_test, y_test, embedding_layer
