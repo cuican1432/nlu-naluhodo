@@ -1,1 +1,0 @@
-Word Embeddings trained on the Enron dataset using the same method as GloVe.
