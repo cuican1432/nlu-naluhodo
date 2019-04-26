@@ -112,4 +112,7 @@ class Dataset:
 		  trainable=False
 		)
 
+		print('Finished.')
+		print('Generated X_train, y_train, X_valid, y_valid, X_test, y_test, embedding_layer as class attributes.')
+
 		return self
