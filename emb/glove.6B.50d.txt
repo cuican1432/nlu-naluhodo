@@ -1,0 +1,2 @@
+# Download the word vectors:
+# http://nlp.stanford.edu/data/glove.6B.zip
