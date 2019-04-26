@@ -24,13 +24,13 @@ class Dataset:
 	   ''' 
 
 		self.dataset = df_dataset
-		self.embedding_path = embedding_path
-		self.data_index = None
-		self.content_column = 'Contents'
-		self.label_column = [str(i+1) for i in range(6)]
-		self.max_len = 200
-		self.max_features = 100000
-		self.embed_size = 300
+        self.embedding_path = embedding_path
+        self.data_index = None
+        self.content_column = 'Contents'
+        self.label_column = [str(i+1) for i in range(6)]
+        self.max_len = 200
+        self.max_features = 100000
+        self.embed_size = 300
 
 	def load_data(self):
 
