@@ -12,12 +12,7 @@ from models.utils import RocAucEvaluation
 
 class Lstm:
 
-    def __init__(self, X_train, y_train, X_valid, y_valid, embedding_layer):
-        self.X_train = X_train
-        self.y_train = y_train
-        self.X_valid = X_valid
-        self.y_valid = y_valid 
-        self.embedding_layer = embedding_layer
+    def __init__(self):
         self.arguments  = {
                     'max_len': 200,
                     'batch_size': 128,
@@ -30,36 +25,40 @@ class Lstm:
                     'early_stop_patience': 3,
                 }
 
+        print('Building Lstm Models ...')
+        print(self.arguments)
 
-    def build_model(self):
 
-        print('Building model...')
+    def build_model(self, X_train, y_train, X_valid, y_valid, embedding_layer):
 
         file_path = self.arguments['checkpoint_path']
         check_point = ModelCheckpoint(file_path, monitor = "val_loss", verbose = 1,
                                       save_best_only = True, mode = "min")
-        ra_val = RocAucEvaluation(validation_data=(self.X_valid, self.y_valid), interval = 1)
+        ra_val = RocAucEvaluation(validation_data=(X_valid, y_valid), interval = 1)
         early_stop = EarlyStopping(monitor = "val_loss", mode = "min", patience = self.arguments['early_stop_patience'])
         
         inp = Input(shape=(self.arguments['max_len'],))
-        x = self.embedding_layer(inp)
+        x = embedding_layer(inp)
         x = CuDNNLSTM(self.arguments['units'], return_sequences=True, name='lstm_layer')(x)
         x = GlobalMaxPool1D()(x)
         x = Dropout(self.arguments['drop_out_rate'])(x)
         x = Dense(50, activation="relu")(x)
         x = Dropout(self.arguments['drop_out_rate'])(x)
         # using sigmoid since we are doing six binary classifications
-        if self.y_train.ndim == 2:
-            output = Dense(self.y_train.shape[1], activation='sigmoid')(x)
+        if y_train.ndim == 2:
+            output = Dense(y_train.shape[1], activation='sigmoid')(x)
         else:
             output = Dense(1, activation='sigmoid')(x)
 
         self.model = Model(inputs = inp, outputs = output)
         self.model.compile(loss = "binary_crossentropy", optimizer = Adam(lr = self.arguments['learning_rate'], decay = self.arguments['learning_rate_decay']),\
                       metrics = ["accuracy"])
-        history = self.model.fit(self.X_train, self.y_train, batch_size = self.arguments['batch_size'], epochs = self.arguments['epochs'],\
-                            validation_data = (self.X_valid, self.y_valid), verbose = 1, callbacks = [ra_val, check_point, early_stop])
+        history = self.model.fit(X_train, y_train, batch_size = self.arguments['batch_size'], epochs = self.arguments['epochs'],\
+                            validation_data = (X_valid, y_valid), verbose = 1, callbacks = [ra_val, check_point, early_stop])
         self.model = load_model(file_path)
 
         print('Finished Building Lstm Model as class attribute class.model')
         return self
+
+        def predict(self, X, batch_size,  verbose):
+        return self.model.predict(X, batch_size = batch_size, verbose = verbose)
