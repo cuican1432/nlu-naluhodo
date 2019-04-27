@@ -8,7 +8,7 @@ We tested both using pre-trained word vectors and training word vectors on a lar
 
 #### Customized Embeddings (train word vectors on the new corpus):
 
-* GloVe_ec.100~300B.txt [data source](http://nlp.stanford.edu/data/glove.6B.zip "glove.6B.zip") and [reference](https://github.com/stanfordnlp/GloVe) 
+* GloVe_ec.100~300B.txt [data source](https://drive.google.com/file/d/1KjFlxapoROMzudGXW4X7oiUtJWAHY1M_/view?usp=sharing "GloVe_ec.100~300B.txt") and [reference](https://github.com/stanfordnlp/GloVe) 
 
 
 
