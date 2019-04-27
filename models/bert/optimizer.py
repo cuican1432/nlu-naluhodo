@@ -27,8 +27,8 @@ from torch.utils.data.distributed import DistributedSampler
 from pytorch_pretrained_bert.optimization import BertAdam
 import logging
 
-import BertForMultiLabelSequenceClassification
-from dataRepresentation import InputExample, InputFeatures, DataProcessor, MultiLabelTextProcessor
+import bert_for_multilabel_sequence_classification
+from data_representation import InputExample, InputFeatures, DataProcessor, MultiLabelTextProcessor
 from util import *
 from pytorch_pretrained_bert import convert_tf_checkpoint_to_pytorch
 

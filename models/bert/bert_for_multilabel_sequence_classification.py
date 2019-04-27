@@ -26,7 +26,7 @@ from torch.utils.data.distributed import DistributedSampler
 from pytorch_pretrained_bert.optimization import BertAdam
 import logging
 
-from dataRepresentation import InputExample, InputFeatures, DataProcessor, MultiLabelTextProcessor
+from data_representation import InputExample, InputFeatures, DataProcessor, MultiLabelTextProcessor
 from util import *
 from pytorch_pretrained_bert import convert_tf_checkpoint_to_pytorch
 from optimizer import CyclicLR
