@@ -60,5 +60,5 @@ class Lstm:
         print('Finished Building Lstm Model as class attribute class.model')
         return self
 
-        def predict(self, X, batch_size,  verbose):
+    def predict(self, X, batch_size,  verbose):
         return self.model.predict(X, batch_size = batch_size, verbose = verbose)
