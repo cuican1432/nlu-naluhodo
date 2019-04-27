@@ -49,12 +49,12 @@ def pred_classes_f1(y_train_pred, y_train, y_test_pred):
     pred_classes = y_test_pred >= threshold
     return pred_classes.astype(int)
 
-def plot_roc_curve(y_test, y_pred, y_train, title=None, micro=False, macro=True, per_class=False):
+def plot_roc_curve(y_test, y_pred, title=None, micro=False, macro=True, per_class=False):
 
-    if y_train.ndim == 2:
-        num_instances, num_classes = y_train.shape
+    if y_test.ndim == 2:
+        num_instances, num_classes = y_test.shape
     else:
-        num_instances = y_train.shape[0]
+        num_instances = y_test.shape[0]
         num_classes = 1
     if (num_classes != 2) and (y_test.ndim == 1):
         bi_y_test = label_binarize(y_test, classes=range(num_classes))
@@ -87,6 +87,12 @@ def plot_roc_curve(y_test, y_pred, y_train, title=None, micro=False, macro=True,
 
     # Plot all ROC curves
     plt.figure(figsize=(10, 10))
+    
+    if per_class == True:
+        for i in range(num_classes):
+            plt.plot(fpr[i], tpr[i], alpha=0.2,
+                     label='ROC curve of class {0} (area = {1:0.4f})'
+                     ''.format(i+1, roc_auc[i]))
     if micro == True:
         plt.plot(fpr['micro'], tpr['micro'],
                  label='micro-average ROC curve (area = {0:0.4f})'
@@ -98,12 +104,6 @@ def plot_roc_curve(y_test, y_pred, y_train, title=None, micro=False, macro=True,
                  label='macro-average ROC curve (area = {0:0.4f})'
                        ''.format(roc_auc['macro']),
                  color='navy', linestyle=':', linewidth=3)
-
-    if per_class == True:
-        for i in range(num_classes):
-            plt.plot(fpr[i], tpr[i], alpha=0.2,
-                     label='ROC curve of class {0} (area = {1:0.4f})'
-                     ''.format(i+1, roc_auc[i]))
 
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlim([0.0, 1.0])

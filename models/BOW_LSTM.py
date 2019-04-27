@@ -1,3 +1,4 @@
+import numpy as np
 from keras.optimizers import Adam, RMSprop
 from keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
 from keras.layers import Dense, Input, CuDNNLSTM, CuDNNGRU, Embedding, Dropout, Activation, Conv1D
