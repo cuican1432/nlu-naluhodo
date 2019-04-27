@@ -120,3 +120,75 @@ class DataEmbeddings:
 		print('Generated X_train, y_train, X_valid, y_valid, X_test, y_test, embedding_layer as class attributes.')
 
 		return X_train, y_train, X_valid, y_valid, X_test, y_test, embedding_layer
+
+
+class BertEmbeddings:
+
+	def __init__(self, data_index = None, nth_sample = 0):
+
+		'''
+	    df_dataset: pandas DataFrame that contains text contents and labels
+	    embedding_path: word embedding saving path
+	    self.data_index: list of np.array that contains the training, validation, and test indeces
+	    content_column: Name of content column, default is 'contents'
+	    label_column: Name of label column(s), default is 'labels'
+	    max_len: the padding lenth of the text, default is 200
+	    max_features: Maximum number of words recognized by the model, default is 100000
+	    embed_size: length of embedding vector, should correspond with the embedding provided, default is 300
+	   ''' 
+
+		self.nth_sample = nth_sample
+		self.max_len = None
+		self.embed_size = None
+		self.data_index = None
+		if data_index == None:
+			print('Creating data sample...')
+		else:
+			self.data_index = [data_index['train'][self.nth_sample], data_index['val'][self.nth_sample], data_index['test']]
+			print('Creating data sample ' + str(self.nth_sample+1) + ' out of 3...')
+
+	def load_bert_embeddings(self, bert_path):
+		"""
+		Input:
+		bert_path: bert embedding saving path, pickle file only
+		"""
+		print('Loading Bert embeddings...')
+		bert_input = pickle.load(open(bert_path, 'rb'))
+            
+		matrix = []
+		labels = []
+		for i in bert_input:
+			instance = []
+			for index, key in enumerate(i):
+				if key != '__labels__':
+					instance += [i[key]]
+				else:
+					labels += [i[key]]
+					break
+			matrix += [np.array(instance)]
+		matrix = np.array(matrix)
+		labels = np.array(labels)
+            
+		self.max_len = max(x.shape[0] for x in matrix)
+        
+		data_matrix = []
+		for i in matrix:
+			data_matrix += [np.pad(i, ((0, self.max_len - i.shape[0]), (0, 0)), 'constant')]
+		data_matrix = np.array(data_matrix)
+
+		self.embed_size = data_matrix.shape[2]
+		print('max_len : ' + str(self.max_len))
+		print('embed_size : ' + str(self.embed_size))
+            
+		if self.data_index == None:
+			X_train, X_test, y_train, y_test = train_test_split(data_matrix, labels, test_size = 0.2, random_state=0)
+			X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size = 0.125, random_state=0)
+		else:
+			X_train = data_matrix[self.data_index[0]]
+			y_train = labels[self.data_index[0]]
+			X_valid = data_matrix[self.data_index[1]]
+			y_valid = labels[self.data_index[1]]
+			X_test = data_matrix[self.data_index[2]]
+			y_test = labels[self.data_index[2]]
+                
+		return X_train, y_train.astype('int'), X_valid, y_valid.astype('int'), X_test, y_test.astype('int')
