@@ -21,7 +21,7 @@ class Lstm:
                     'learning_rate_decay': 0,
                     'units': 128,
                     'drop_out_rate': 0.2,
-                    'checkpoint_path': 'best_model.hdf5',
+                    'checkpoint_path': 'best_lstm_model.hdf5',
                     'early_stop_patience': 3,
                 }
 
@@ -29,7 +29,7 @@ class Lstm:
         print(self.arguments)
 
 
-    def build_model(self, X_train, y_train, X_valid, y_valid, embedding_layer):
+    def fit(self, X_train, y_train, X_valid, y_valid, embedding_layer):
 
         file_path = self.arguments['checkpoint_path']
         check_point = ModelCheckpoint(file_path, monitor = "val_loss", verbose = 1,

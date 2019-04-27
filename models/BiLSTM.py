@@ -21,7 +21,7 @@ class BiLstm:
                     'learning_rate_decay': 0,
                     'units': 128,
                     'drop_out_rate': 0.2,
-                    'checkpoint_path': 'best_model.hdf5',
+                    'checkpoint_path': 'best_bilstm_model.hdf5',
                     'early_stop_patience': 10,
                 }
         print('Building BiLstm Models ...')
