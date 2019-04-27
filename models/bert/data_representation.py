@@ -124,10 +124,10 @@ class MultiLabelTextProcessor(DataProcessor):
         """Creates examples for the training and dev sets."""
         examples = []
         for (i, row) in enumerate(df.values):
-            guid = row[0]
-            text_a = row[1]
+            guid = i
+            text_a = row[0]
             if labels_available:
-                labels = row[2:]
+                labels = row[1:]
             else:
                 labels = []
             examples.append(
