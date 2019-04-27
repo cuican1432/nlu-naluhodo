@@ -5,6 +5,7 @@ We tested both using pre-trained word vectors and training word vectors on a lar
 #### Pretrained Embeddings Include:
 
 * glove.6B.100~300d.txt [data source](http://nlp.stanford.edu/data/glove.6B.zip "glove.6B.zip")
+* bert-embeddings see `bert-embedding-feature-extraction.ipynb` [data source](https://github.com/cuican1432/nlu-naluhodo/blob/master/emb/bert_embedding_feature_extraction.ipynb  "bert_embedding_feature_extraction.ipynb") and [reference](https://towardsdatascience.com/nlp-extract-contextualized-word-embeddings-from-bert-keras-tf-67ef29f60a7b) 
 
 #### Customized Embeddings (train word vectors on the new corpus):
 
