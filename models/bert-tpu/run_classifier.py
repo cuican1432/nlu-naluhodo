@@ -378,7 +378,7 @@ class ColaProcessor(DataProcessor):
 class MultiLabelTextProcessor(DataProcessor):
     def __init__(self, data_dir):
         self.data_dir = data_dir
-        self.labels = None
+        self.label = None
     
     
     def get_train_examples(self, data_dir, size=-1):
@@ -409,9 +409,9 @@ class MultiLabelTextProcessor(DataProcessor):
 
     def get_labels(self):
         """See base class."""
-        if self.labels == None:
-            self.labels = list(pd.read_csv(os.path.join(self.data_dir, "classes.txt"),header=None)[0].values)
-        return self.labels
+        if self.label == None:
+            self.label = list(pd.read_csv(os.path.join(self.data_dir, "classes.txt"),header=None)[0].values)
+        return self.label
 
     def _create_examples(self, df, set_type, labels_available=True):
         """Creates examples for the training and dev sets."""
@@ -420,11 +420,11 @@ class MultiLabelTextProcessor(DataProcessor):
             guid = i
             text_a = row[0]
             if labels_available:
-                labels = row[1:]
+                label = row[1:]
             else:
-                labels = []
+                label = []
             examples.append(
-                InputExample(guid=guid, text_a=text_a, label=labels))
+                InputExample(guid=guid, text_a=text_a, label=label))
         return examples
 
 
