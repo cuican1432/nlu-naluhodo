@@ -424,7 +424,7 @@ class MultiLabelTextProcessor(DataProcessor):
             else:
                 labels = []
             examples.append(
-                InputExample(guid=guid, text_a=text_a, labels=labels))
+                InputExample(guid=guid, text_a=text_a, label=labels))
         return examples
 
 
