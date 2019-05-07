@@ -26,6 +26,7 @@ import optimization
 import tokenization
 import tensorflow as tf
 import pandas as pd
+import sys
 
 flags = tf.flags
 
@@ -420,7 +421,7 @@ class MultiLabelTextProcessor(DataProcessor):
             guid = i
             text_a = row[0]
             if labels_available:
-                label = row[1:]
+                label = [int(a) for a in row[1:]]
             else:
                 label = []
             examples.append(
@@ -510,7 +511,12 @@ def convert_single_example(ex_index, example, label_list, max_seq_length,
   assert len(input_mask) == max_seq_length
   assert len(segment_ids) == max_seq_length
 
-  label_id = label_map[example.label]
+  # label_id = label_map[example.label]
+
+  labels_ids = []
+    for label in example.label:
+        labels_ids.append(int(label))
+
   if ex_index < 5:
     tf.logging.info("*** Example ***")
     tf.logging.info("guid: %s" % (example.guid))
@@ -519,13 +525,14 @@ def convert_single_example(ex_index, example, label_list, max_seq_length,
     tf.logging.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
     tf.logging.info("input_mask: %s" % " ".join([str(x) for x in input_mask]))
     tf.logging.info("segment_ids: %s" % " ".join([str(x) for x in segment_ids]))
-    tf.logging.info("label: %s (id = %d)" % (example.label, label_id))
-
+    # tf.logging.info("label: %s (id = %d)" % (example.label, label_id))
+    tf.logging.info("label: {} (id = {})".format(example.label, labels_ids))
+  
   feature = InputFeatures(
       input_ids=input_ids,
       input_mask=input_mask,
       segment_ids=segment_ids,
-      label_id=label_id,
+      label_id=labels_ids,
       is_real_example=True)
   return feature
 
@@ -551,9 +558,15 @@ def file_based_convert_examples_to_features(
     features["input_ids"] = create_int_feature(feature.input_ids)
     features["input_mask"] = create_int_feature(feature.input_mask)
     features["segment_ids"] = create_int_feature(feature.segment_ids)
-    features["label_ids"] = create_int_feature([feature.label_id])
+    # features["label_ids"] = create_int_feature([feature.label_id])
     features["is_real_example"] = create_int_feature(
         [int(feature.is_real_example)])
+
+    if isinstance(feature.label_id, list):
+            label_ids = feature.label_id
+        else:
+            label_ids = [feature.label_id]
+        features["label_ids"] = create_int_feature(label_ids)
 
     tf_example = tf.train.Example(features=tf.train.Features(feature=features))
     writer.write(tf_example.SerializeToString())
@@ -568,7 +581,7 @@ def file_based_input_fn_builder(input_file, seq_length, is_training,
       "input_ids": tf.FixedLenFeature([seq_length], tf.int64),
       "input_mask": tf.FixedLenFeature([seq_length], tf.int64),
       "segment_ids": tf.FixedLenFeature([seq_length], tf.int64),
-      "label_ids": tf.FixedLenFeature([], tf.int64),
+      "label_ids": tf.FixedLenFeature([6], tf.int64),
       "is_real_example": tf.FixedLenFeature([], tf.int64),
   }
 
@@ -659,13 +672,18 @@ def create_model(bert_config, is_training, input_ids, input_mask, segment_ids,
 
     logits = tf.matmul(output_layer, output_weights, transpose_b=True)
     logits = tf.nn.bias_add(logits, output_bias)
-    probabilities = tf.nn.softmax(logits, axis=-1)
-    log_probs = tf.nn.log_softmax(logits, axis=-1)
-
-    one_hot_labels = tf.one_hot(labels, depth=num_labels, dtype=tf.float32)
-
-    per_example_loss = -tf.reduce_sum(one_hot_labels * log_probs, axis=-1)
+    
+    probabilities = tf.nn.sigmoid(logits)
+    labels = tf.cast(labels, tf.float32)
+    tf.logging.info("num_labels:{};logits:{};labels:{}".format(num_labels, logits, labels))
+    per_example_loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=labels, logits=logits)
     loss = tf.reduce_mean(per_example_loss)
+
+    # probabilities = tf.nn.softmax(logits, axis=-1)
+    # log_probs = tf.nn.log_softmax(logits, axis=-1)
+    # one_hot_labels = tf.one_hot(labels, depth=num_labels, dtype=tf.float32)
+    # per_example_loss = -tf.reduce_sum(one_hot_labels * log_probs, axis=-1)
+    # loss = tf.reduce_mean(per_example_loss)
 
     return (loss, per_example_loss, logits, probabilities)
 
@@ -736,14 +754,24 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
     elif mode == tf.estimator.ModeKeys.EVAL:
 
       def metric_fn(per_example_loss, label_ids, logits, is_real_example):
-        predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
-        accuracy = tf.metrics.accuracy(
-            labels=label_ids, predictions=predictions, weights=is_real_example)
-        loss = tf.metrics.mean(values=per_example_loss, weights=is_real_example)
-        return {
-            "eval_accuracy": accuracy,
-            "eval_loss": loss,
-        }
+        # predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
+        # accuracy = tf.metrics.accuracy(
+        #     labels=label_ids, predictions=predictions, weights=is_real_example)
+        # loss = tf.metrics.mean(values=per_example_loss, weights=is_real_example)
+        # return {
+        #     "eval_accuracy": accuracy,
+        #     "eval_loss": loss,
+        # }
+        logits_split = tf.split(probabilities, num_labels, axis=-1)
+        label_ids_split = tf.split(label_ids, num_labels, axis=-1)
+        # metrics change to auc of every class
+        eval_dict = {}
+        for j, logits in enumerate(logits_split):
+          label_id_ = tf.cast(label_ids_split[j], dtype=tf.int32)
+          current_auc, update_op_auc = tf.metrics.auc(label_id_, logits)
+          eval_dict[str(j)] = (current_auc, update_op_auc)
+        eval_dict['eval_loss'] = tf.metrics.mean(values=per_example_loss)
+        return eval_dict
 
       eval_metrics = (metric_fn,
                       [per_example_loss, label_ids, logits, is_real_example])
