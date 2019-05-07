@@ -453,7 +453,7 @@ class MultiLabelTextProcessor_original(DataProcessor):
 
     def get_labels(self, data_dir):
         """See base class."""
-        return return [
+        return  [
                     'company',
                     'personal',
                     'personal&business',
