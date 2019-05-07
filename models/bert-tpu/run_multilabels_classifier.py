@@ -451,7 +451,7 @@ class MultiLabelTextProcessor_original(DataProcessor):
         data_df = pd.read_csv(os.path.join(data_dir, 'test.csv'))
         return self._create_examples(data_df, "test")
 
-    def get_labels(self, data_dir):
+    def get_labels(self):
         """See base class."""
         return  [
                     'company',
@@ -882,7 +882,7 @@ def input_fn_builder(features, seq_length, is_training, drop_remainder):
                     shape=[num_examples, seq_length],
                     dtype=tf.int32),
             "label_ids":
-                tf.constant(all_label_ids, shape=[num_examples], dtype=tf.int32),
+                tf.constant(all_label_ids, shape=[num_examples, 6], dtype=tf.int32),
         })
 
         if is_training:
