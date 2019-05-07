@@ -73,12 +73,11 @@ def create_model(is_training, input_ids, input_mask, segment_ids, labels,
 
     logits = tf.matmul(output_layer, output_weights, transpose_b=True)
     logits = tf.nn.bias_add(logits, output_bias)
-    probabilities = tf.nn.softmax(logits, axis=-1)
-    log_probs = tf.nn.log_softmax(logits, axis=-1)
-
-    one_hot_labels = tf.one_hot(labels, depth=num_labels, dtype=tf.float32)
-
-    per_example_loss = -tf.reduce_sum(one_hot_labels * log_probs, axis=-1)
+    
+    probabilities = tf.nn.sigmoid(logits)
+    labels = tf.cast(labels, tf.float32)
+    tf.logging.info("num_labels:{};logits:{};labels:{}".format(num_labels, logits, labels))
+    per_example_loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=labels, logits=logits)
     loss = tf.reduce_mean(per_example_loss)
 
     return (loss, per_example_loss, logits, probabilities)
@@ -118,13 +117,16 @@ def model_fn_builder(num_labels, learning_rate, num_train_steps,
     elif mode == tf.estimator.ModeKeys.EVAL:
 
       def metric_fn(per_example_loss, label_ids, logits):
-        predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
-        accuracy = tf.metrics.accuracy(label_ids, predictions)
-        loss = tf.metrics.mean(per_example_loss)
-        return {
-            "eval_accuracy": accuracy,
-            "eval_loss": loss,
-        }
+        logits_split = tf.split(probabilities, num_labels, axis=-1)
+        label_ids_split = tf.split(label_ids, num_labels, axis=-1)
+        # metrics change to auc of every class
+        eval_dict = {}
+        for j, logits in enumerate(logits_split):
+          label_id_ = tf.cast(label_ids_split[j], dtype=tf.int32)
+          current_auc, update_op_auc = tf.metrics.auc(label_id_, logits)
+          eval_dict[str(j)] = (current_auc, update_op_auc)
+        eval_dict['eval_loss'] = tf.metrics.mean(values=per_example_loss)
+        return eval_dict
 
       eval_metrics = (metric_fn, [per_example_loss, label_ids, logits])
       output_spec = tf.contrib.tpu.TPUEstimatorSpec(
