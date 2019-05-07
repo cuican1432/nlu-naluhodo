@@ -71,13 +71,25 @@ def create_model(is_training, input_ids, input_mask, segment_ids, labels,
       # I.e., 0.1 dropout
       output_layer = tf.nn.dropout(output_layer, keep_prob=0.9)
 
+    # logits = tf.matmul(output_layer, output_weights, transpose_b=True)
+    # logits = tf.nn.bias_add(logits, output_bias)
+
+    # probabilities = tf.nn.sigmoid(logits)
+    # labels = tf.cast(labels, tf.float32)
+    # tf.logging.info("num_labels:{};logits:{};labels:{}".format(num_labels, logits, labels))
+    # per_example_loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=labels, logits=logits)
+    # loss = tf.reduce_mean(per_example_loss)
+
+    # return (loss, per_example_loss, logits, probabilities)
+
     logits = tf.matmul(output_layer, output_weights, transpose_b=True)
     logits = tf.nn.bias_add(logits, output_bias)
+    probabilities = tf.nn.softmax(logits, axis=-1)
+    log_probs = tf.nn.log_softmax(logits, axis=-1)
 
-    probabilities = tf.sigmoid(logits)
-    labels = tf.cast(labels, tf.float32)
-    tf.logging.info("num_labels:{};logits:{};labels:{}".format(num_labels, logits, labels))
-    per_example_loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=labels, logits=logits)
+    one_hot_labels = tf.one_hot(labels, depth=num_labels, dtype=tf.float32)
+
+    per_example_loss = -tf.reduce_sum(one_hot_labels * log_probs, axis=-1)
     loss = tf.reduce_mean(per_example_loss)
 
     return (loss, per_example_loss, logits, probabilities)
