@@ -74,7 +74,7 @@ def create_model(is_training, input_ids, input_mask, segment_ids, labels,
     logits = tf.matmul(output_layer, output_weights, transpose_b=True)
     logits = tf.nn.bias_add(logits, output_bias)
 
-    probabilities = tf.nn.sigmoid(logits)
+    probabilities = tf.sigmoid(logits)
     labels = tf.cast(labels, tf.float32)
     tf.logging.info("num_labels:{};logits:{};labels:{}".format(num_labels, logits, labels))
     per_example_loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=labels, logits=logits)
