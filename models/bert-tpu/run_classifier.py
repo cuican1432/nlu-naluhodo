@@ -563,10 +563,10 @@ def file_based_convert_examples_to_features(
         [int(feature.is_real_example)])
 
     if isinstance(feature.label_id, list):
-            label_ids = feature.label_id
-        else:
-            label_ids = [feature.label_id]
-        features["label_ids"] = create_int_feature(label_ids)
+      label_ids = feature.label_id
+    else:
+      label_ids = [feature.label_id]
+      features["label_ids"] = create_int_feature(label_ids)
 
     tf_example = tf.train.Example(features=tf.train.Features(feature=features))
     writer.write(tf_example.SerializeToString())
