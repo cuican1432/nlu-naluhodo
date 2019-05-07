@@ -380,8 +380,59 @@ class ColaProcessor(DataProcessor):
                 InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
 
-
 class MultiLabelTextProcessor(DataProcessor):
+    def __init__(self, data_dir):
+        self.data_dir = data_dir
+        self.label = None
+    
+    
+    def get_train_examples(self, data_dir, size=-1):
+        filename = 'train.csv'
+        if size == -1:
+            data_df = pd.read_csv(os.path.join(data_dir, filename))
+            return self._create_examples(data_df, "train")
+        else:
+            data_df = pd.read_csv(os.path.join(data_dir, filename))
+            return self._create_examples(data_df.sample(size), "train")
+        
+    def get_dev_examples(self, data_dir, size=-1):
+        """See base class."""
+        filename = 'val.csv'
+        if size == -1:
+            data_df = pd.read_csv(os.path.join(data_dir, filename))
+            return self._create_examples(data_df, "dev")
+        else:
+            data_df = pd.read_csv(os.path.join(data_dir, filename))
+            return self._create_examples(data_df.sample(size), "dev")
+    
+    def get_test_examples(self, data_dir, data_file_name, size=-1):
+        data_df = pd.read_csv(os.path.join(data_dir, data_file_name))
+        if size == -1:
+            return self._create_examples(data_df, "test")
+        else:
+            return self._create_examples(data_df.sample(size), "test")
+
+    def get_labels(self):
+        """See base class."""
+        if self.label == None:
+            self.label = list(pd.read_csv(os.path.join(self.data_dir, "classes.txt"),header=None)[0].values)
+        return self.label
+
+    def _create_examples(self, df, set_type, labels_available=True):
+        """Creates examples for the training and dev sets."""
+        examples = []
+        for (i, row) in enumerate(df.values):
+            guid = i
+            text_a = row[0]
+            if labels_available:
+                label = [int(a) for a in row[1:]]
+            else:
+                label = []
+            examples.append(
+                InputExample(guid=guid, text_a=text_a, label=label))
+        return examples
+
+class MultiLabelTextProcessor_original(DataProcessor):
 
     def get_train_examples(self, data_dir):
         filename = 'train.csv'

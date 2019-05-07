@@ -73,7 +73,7 @@ def create_model(is_training, input_ids, input_mask, segment_ids, labels,
 
     logits = tf.matmul(output_layer, output_weights, transpose_b=True)
     logits = tf.nn.bias_add(logits, output_bias)
-    
+
     probabilities = tf.nn.sigmoid(logits)
     labels = tf.cast(labels, tf.float32)
     tf.logging.info("num_labels:{};logits:{};labels:{}".format(num_labels, logits, labels))
@@ -125,6 +125,7 @@ def model_fn_builder(num_labels, learning_rate, num_train_steps,
           label_id_ = tf.cast(label_ids_split[j], dtype=tf.int32)
           current_auc, update_op_auc = tf.metrics.auc(label_id_, logits)
           eval_dict[str(j)] = (current_auc, update_op_auc)
+          
         eval_dict['eval_loss'] = tf.metrics.mean(values=per_example_loss)
         return eval_dict
 
