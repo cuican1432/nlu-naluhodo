@@ -514,8 +514,8 @@ def convert_single_example(ex_index, example, label_list, max_seq_length,
   # label_id = label_map[example.label]
 
   labels_ids = []
-    for label in example.label:
-        labels_ids.append(int(label))
+  for label in example.label:
+      labels_ids.append(int(label))
 
   if ex_index < 5:
     tf.logging.info("*** Example ***")
