@@ -453,7 +453,7 @@ class MultiLabelTextProcessor_original(DataProcessor):
 
     def get_labels(self):
         """See base class."""
-        return list(pd.read_csv(os.path.join(FLAGS.data_dir, "classes.txt"), header=None)[0].values)
+        return list(pd.read_csv(os.path.join(data_dir, "classes.txt"), header=None)[0].values)
 
     def _create_examples(self, df, set_type):
         """Creates examples for the training and dev sets."""
